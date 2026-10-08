@@ -2,15 +2,15 @@
 
 # Hi, I'm DumbDeV-cs
 
-I'm learning programming by making small projects. I like desktop apps and pixel-art companions, and I'm still figuring things out as I go.
+I'm learning to code through small projects. I like desktop apps and making pixel-art companions.
 
-## A few projects
+## Projects
 
-- [Spidey Desktop Companion](https://github.com/DumbDeV-cs/spidey-desktop-companion) — a desktop companion project with pixel-art characters.
-- [Jurukai](https://github.com/DumbDeV-cs/Jurukai) — an alarm app project built with Qt and Android tools.
-- [ecommerce-platform](https://github.com/DumbDeV-cs/ecommerce-platform) — a Flutter web shop project.
+- [Spidey Desktop Companion](https://github.com/DumbDeV-cs/spidey-desktop-companion) — a desktop buddy project with pixel-art characters.
+- [Jurukai](https://github.com/DumbDeV-cs/Jurukai) — an alarm app project using Qt and Android tools.
+- [ecommerce-platform](https://github.com/DumbDeV-cs/ecommerce-platform) — a small Flutter web shop project.
 - [portfolio](https://github.com/DumbDeV-cs/portfolio) — my personal portfolio.
 
-I'm currently learning Python, C++, Dart, and the tools these projects use.
+## Currently learning
 
-Thanks for stopping by!
+Python · C++ · Dart · exploring Qt and Flutter through projects
