@@ -1,28 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="280" viewBox="0 0 1000 280" role="img" aria-labelledby="title desc">
-  <title id="title">A small pixel-art desk scene</title>
-  <desc id="desc">A little robot and cat hang out by a window while I learn to code.</desc>
-  <rect width="1000" height="280" rx="18" fill="#f2eadc"/>
-  <rect x="0" y="194" width="1000" height="86" fill="#d8c8ad"/>
-  <path d="M0 194h1000M0 205h1000" stroke="#b9a789" stroke-width="4"/>
-  <rect x="68" y="38" width="300" height="126" rx="8" fill="#d3e6df" stroke="#526c65" stroke-width="8"/>
-  <path d="M218 42v118M72 102h292" stroke="#526c65" stroke-width="6"/>
-  <rect x="88" y="58" width="90" height="36" fill="#a8c9c4"/><rect x="244" y="58" width="98" height="36" fill="#c2d9cc"/>
-  <rect x="88" y="116" width="90" height="32" fill="#e7d2a6"/><rect x="244" y="116" width="98" height="32" fill="#b5c9ad"/>
-  <text x="430" y="96" fill="#485b4d" font-family="Consolas, monospace" font-size="18">currently figuring things out</text>
-  <text x="426" y="148" fill="#293b35" font-family="Consolas, monospace" font-size="42" font-weight="700">learning as I go</text>
-  <text x="430" y="178" fill="#657166" font-family="Consolas, monospace" font-size="15">one little project at a time</text>
-  <!-- little robot on the desk -->
-  <g stroke="#334b48" stroke-width="6" stroke-linejoin="round">
-    <path d="M746 110h88v70h-88z" fill="#91c7c1"/><path d="M767 180v20m48-20v20" fill="none"/>
-    <path d="M775 138h8m22 0h8" stroke="#334b48" stroke-width="8"/><path d="M774 157h32" stroke="#47756e" stroke-width="5"/>
-    <path d="M790 110V94"/><rect x="784" y="82" width="12" height="12" fill="#e7b45d"/>
+  <title id="title">DumbDeV-cs — learning one project at a time</title>
+  <desc id="desc">A cozy pixel-art desk with a laptop, a tiny robot, and a cat by the window.</desc>
+  <rect width="1000" height="280" rx="18" fill="#18252d"/>
+  <rect x="22" y="22" width="956" height="236" rx="12" fill="none" stroke="#31434a" stroke-width="2"/>
+  <g fill="#6d9284"><rect x="52" y="52" width="6" height="6"/><rect x="564" y="48" width="5" height="5"/><rect x="933" y="66" width="5" height="5"/></g>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="72" y="86" fill="#9ccbb2" font-size="14" font-weight="700" letter-spacing="2">A LITTLE ABOUT ME</text>
+    <text x="68" y="146" fill="#f2e9d8" font-size="43" font-weight="700">DumbDeV-cs</text>
+    <rect x="72" y="166" width="54" height="4" fill="#e4b86c"/>
+    <text x="72" y="202" fill="#c3d0c8" font-family="Consolas, monospace" font-size="17">learning one project at a time</text>
   </g>
-  <!-- sleepy pixel cat -->
-  <g stroke="#4b443f" stroke-width="6" stroke-linejoin="round">
-    <path d="M872 139v-34l22 13q17-9 34 0l22-13v34q0 39-39 39t-39-39z" fill="#706a68"/>
-    <path d="M889 141h8m26 0h8" stroke="#f3e6c8" stroke-width="7"/><path d="M907 153l-5 5h10z" fill="#d89b86"/>
-    <path d="M883 178v20m49-20v20" fill="none"/><path d="M950 163q24 0 17-23" fill="none"/>
-  </g>
-  <rect x="728" y="202" width="220" height="8" fill="#9c8767"/>
-  <rect x="0" y="0" width="1000" height="280" rx="18" fill="none" stroke="#e5dac8" stroke-width="3"/>
+  <!-- window at dusk -->
+  <rect x="668" y="38" width="252" height="124" rx="5" fill="#344c55"/>
+  <rect x="677" y="47" width="234" height="106" fill="#b8c9b0"/>
+  <rect x="677" y="47" width="234" height="58" fill="#e2b983"/>
+  <rect x="677" y="105" width="234" height="48" fill="#718d84"/>
+  <rect x="702" y="91" width="24" height="14" fill="#879c83"/><rect x="745" y="82" width="34" height="23" fill="#879c83"/>
+  <rect x="802" y="89" width="18" height="16" fill="#879c83"/><rect x="845" y="76" width="42" height="29" fill="#879c83"/>
+  <rect x="783" y="38" width="7" height="124" fill="#344c55"/><rect x="668" y="98" width="252" height="7" fill="#344c55"/>
+  <!-- desk and shelf -->
+  <rect x="612" y="204" width="340" height="12" fill="#9b7957"/><rect x="632" y="216" width="14" height="31" fill="#795f49"/><rect x="920" y="216" width="14" height="31" fill="#795f49"/>
+  <!-- laptop -->
+  <path d="M700 139h119v61H700z" fill="#34434a" stroke="#0f171b" stroke-width="5"/>
+  <rect x="708" y="147" width="103" height="45" fill="#c8d8c5"/>
+  <rect x="719" y="157" width="28" height="4" fill="#758f7d"/><rect x="719" y="167" width="52" height="4" fill="#758f7d"/><rect x="719" y="177" width="38" height="4" fill="#d49e5c"/>
+  <path d="M687 201h145l-12 9H697z" fill="#65777a" stroke="#0f171b" stroke-width="4"/>
+  <!-- tiny potted plant -->
+  <rect x="645" y="180" width="27" height="23" fill="#c88765"/><rect x="650" y="170" width="8" height="14" fill="#8cac83"/><rect x="660" y="164" width="8" height="20" fill="#8cac83"/><rect x="639" y="174" width="8" height="10" fill="#8cac83"/>
+  <!-- little robot perched on laptop -->
+  <rect x="847" y="151" width="49" height="48" fill="#84bdb2" stroke="#31434a" stroke-width="5"/>
+  <rect x="859" y="167" width="6" height="6" fill="#24383a"/><rect x="879" y="167" width="6" height="6" fill="#24383a"/>
+  <rect x="862" y="181" width="21" height="4" fill="#46716b"/><rect x="866" y="139" width="10" height="12" fill="#e4b86c"/>
+  <!-- cat curled beside the laptop -->
+  <path d="M914 190v-27l13 8 10-8 13 8v22q-3 15-19 15t-17-18z" fill="#d9c9aa" stroke="#34434a" stroke-width="5"/>
+  <rect x="922" y="176" width="5" height="5" fill="#34434a"/><rect x="939" y="176" width="5" height="5" fill="#34434a"/>
+  <path d="M927 185h12" stroke="#b77e69" stroke-width="3"/><path d="M951 196q14-2 10-14" fill="none" stroke="#34434a" stroke-width="5"/>
 </svg>
