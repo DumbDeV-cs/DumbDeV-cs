@@ -1,38 +1,81 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="280" viewBox="0 0 1000 280" role="img" aria-labelledby="title desc">
-  <title id="title">DumbDeV-cs — learning one project at a time</title>
-  <desc id="desc">A cozy pixel-art desk with a laptop, a tiny robot, and a cat by the window.</desc>
-  <rect width="1000" height="280" rx="18" fill="#18252d"/>
-  <rect x="22" y="22" width="956" height="236" rx="12" fill="none" stroke="#31434a" stroke-width="2"/>
-  <g fill="#6d9284"><rect x="52" y="52" width="6" height="6"/><rect x="564" y="48" width="5" height="5"/><rect x="933" y="66" width="5" height="5"/></g>
-  <g font-family="Segoe UI, Arial, sans-serif">
-    <text x="72" y="86" fill="#9ccbb2" font-size="14" font-weight="700" letter-spacing="2">A LITTLE ABOUT ME</text>
-    <text x="68" y="146" fill="#f2e9d8" font-size="43" font-weight="700">DumbDeV-cs</text>
-    <rect x="72" y="166" width="54" height="4" fill="#e4b86c"/>
-    <text x="72" y="202" fill="#c3d0c8" font-family="Consolas, monospace" font-size="17">learning one project at a time</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title description">
+  <title id="title">DumbDeV-cs — learning to code, one small project at a time</title>
+  <desc id="description">A dark teal profile banner with two decorative pixel-style cats, warm accent pixels, and a softly blinking cursor.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111b2a"/>
+      <stop offset="1" stop-color="#142f36"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#82dfc1"/>
+      <stop offset="1" stop-color="#f3bf7b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="360" rx="22" fill="url(#bg)"/>
+  <path d="M0 285c186-45 340-49 514-22 66 10 122 20 187 14v83H0z" fill="#21434a" opacity=".22"/>
+  <path d="M62 62v236" stroke="#7edfc2" stroke-width="2" opacity=".8"/>
+  <path d="M63 62h34" stroke="#f1bd79" stroke-width="2"/>
+
+  <g font-family="Segoe UI, Arial, sans-serif" shape-rendering="auto">
+    <text x="104" y="112" fill="#a8c9c2" font-size="13" font-weight="600" letter-spacing="3">SMALL PROJECTS · TINY COMPANIONS</text>
+    <text x="100" y="190" fill="#f5f3ed" font-size="58" font-weight="700" letter-spacing="-2">DumbDeV-cs</text>
+    <text x="104" y="239" fill="#d3e2dc" font-size="22">Learning to code, one small project</text>
+    <text x="104" y="271" fill="#d3e2dc" font-size="22">at a time<tspan fill="#f1bd79">.</tspan></text>
+    <rect x="218" y="249" width="2" height="26" rx="1" fill="#f1bd79">
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;.45;.5;.95;1" dur="1.2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="104" y="300" width="56" height="3" rx="1.5" fill="url(#accent)"/>
   </g>
-  <!-- window at dusk -->
-  <rect x="668" y="38" width="252" height="124" rx="5" fill="#344c55"/>
-  <rect x="677" y="47" width="234" height="106" fill="#b8c9b0"/>
-  <rect x="677" y="47" width="234" height="58" fill="#e2b983"/>
-  <rect x="677" y="105" width="234" height="48" fill="#718d84"/>
-  <rect x="702" y="91" width="24" height="14" fill="#879c83"/><rect x="745" y="82" width="34" height="23" fill="#879c83"/>
-  <rect x="802" y="89" width="18" height="16" fill="#879c83"/><rect x="845" y="76" width="42" height="29" fill="#879c83"/>
-  <rect x="783" y="38" width="7" height="124" fill="#344c55"/><rect x="668" y="98" width="252" height="7" fill="#344c55"/>
-  <!-- desk and shelf -->
-  <rect x="612" y="204" width="340" height="12" fill="#9b7957"/><rect x="632" y="216" width="14" height="31" fill="#795f49"/><rect x="920" y="216" width="14" height="31" fill="#795f49"/>
-  <!-- laptop -->
-  <path d="M700 139h119v61H700z" fill="#34434a" stroke="#0f171b" stroke-width="5"/>
-  <rect x="708" y="147" width="103" height="45" fill="#c8d8c5"/>
-  <rect x="719" y="157" width="28" height="4" fill="#758f7d"/><rect x="719" y="167" width="52" height="4" fill="#758f7d"/><rect x="719" y="177" width="38" height="4" fill="#d49e5c"/>
-  <path d="M687 201h145l-12 9H697z" fill="#65777a" stroke="#0f171b" stroke-width="4"/>
-  <!-- tiny potted plant -->
-  <rect x="645" y="180" width="27" height="23" fill="#c88765"/><rect x="650" y="170" width="8" height="14" fill="#8cac83"/><rect x="660" y="164" width="8" height="20" fill="#8cac83"/><rect x="639" y="174" width="8" height="10" fill="#8cac83"/>
-  <!-- little robot perched on laptop -->
-  <rect x="847" y="151" width="49" height="48" fill="#84bdb2" stroke="#31434a" stroke-width="5"/>
-  <rect x="859" y="167" width="6" height="6" fill="#24383a"/><rect x="879" y="167" width="6" height="6" fill="#24383a"/>
-  <rect x="862" y="181" width="21" height="4" fill="#46716b"/><rect x="866" y="139" width="10" height="12" fill="#e4b86c"/>
-  <!-- cat curled beside the laptop -->
-  <path d="M914 190v-27l13 8 10-8 13 8v22q-3 15-19 15t-17-18z" fill="#d9c9aa" stroke="#34434a" stroke-width="5"/>
-  <rect x="922" y="176" width="5" height="5" fill="#34434a"/><rect x="939" y="176" width="5" height="5" fill="#34434a"/>
-  <path d="M927 185h12" stroke="#b77e69" stroke-width="3"/><path d="M951 196q14-2 10-14" fill="none" stroke="#34434a" stroke-width="5"/>
+
+  <!-- Original pixel-style black cat mascot -->
+  <g aria-label="Black pixel-style cat" transform="translate(0 0)" shape-rendering="crispEdges">
+    <!-- tail -->
+    <path d="M824 252h-12v-12h12v-12h12v12h12v12h-12v12h-12z" fill="#202b3b"/>
+    <!-- body and paws -->
+    <path d="M838 207h84v12h12v48h-12v12h-12v12h-24v-12h-12v12h-24v-12h-12v-12h-12v-48h12z" fill="#202b3b"/>
+    <path d="M850 221h60v36h-60z" fill="#29394a"/>
+    <path d="M850 267h24v12h-24zM898 267h24v12h-24z" fill="#e7a968"/>
+    <!-- head and ears -->
+    <path d="M838 145v-24h12v-12h24v12h36v-12h24v12h12v24h12v48h-12v12h-96v-12h-12v-48z" fill="#202b3b"/>
+    <path d="M850 145v-12h12v12h-12zM922 145v-12h12v12h-12z" fill="#d98798"/>
+    <path d="M850 145h84v48h-84z" fill="#29394a"/>
+    <!-- face -->
+    <path d="M862 157h8v12h-8zM914 157h8v12h-8z" fill="#8de0c1"/>
+    <path d="M886 177h8v6h-8z" fill="#ef9e9b"/>
+    <path d="M878 189h8v6h16v-6h8v8h-8v6h-16v-6h-8z" fill="#d7c4ba"/>
+    <!-- collar -->
+    <path d="M862 207h36v8h-36z" fill="#e9aa68"/>
+  </g>
+
+  <!-- Original pixel-style cream cat mascot -->
+  <g aria-label="Cream pixel-style cat" transform="translate(0 0)" shape-rendering="crispEdges">
+    <!-- tail -->
+    <path d="M1021 250h-12v-12h12v-12h12v12h12v12h-12v12h-12z" fill="#c5a879"/>
+    <!-- body and paws -->
+    <path d="M1035 207h84v12h12v48h-12v12h-12v12h-24v-12h-12v12h-24v-12h-12v-12h-12v-48h12z" fill="#dfc99e"/>
+    <path d="M1047 221h60v36h-60z" fill="#ead8b5"/>
+    <path d="M1047 267h24v12h-24zM1095 267h24v12h-24z" fill="#83cbb9"/>
+    <!-- head and ears -->
+    <path d="M1035 145v-24h12v-12h24v12h36v-12h24v12h12v24h12v48h-12v12h-96v-12h-12v-48z" fill="#dfc99e"/>
+    <path d="M1047 145v-12h12v12h-12zM1119 145v-12h12v12h-12z" fill="#d98f93"/>
+    <path d="M1047 145h84v48h-84z" fill="#ead8b5"/>
+    <!-- face -->
+    <path d="M1059 157h8v12h-8zM1111 157h8v12h-8z" fill="#2d4547"/>
+    <path d="M1083 177h8v6h-8z" fill="#d98f93"/>
+    <path d="M1075 189h8v6h16v-6h8v8h-8v6h-16v-6h-8z" fill="#876d62"/>
+    <!-- tiny neck bow -->
+    <path d="M1083 207h8v8h-8zM1075 207h8v8h-8zM1091 207h8v8h-8z" fill="#83cbb9"/>
+  </g>
+
+  <!-- A few quiet pixels to tie the characters into the background -->
+  <g fill="#f1bd79">
+    <rect x="795" y="107" width="6" height="6"/>
+    <rect x="984" y="136" width="4" height="4" opacity=".8"/>
+    <rect x="1149" y="185" width="6" height="6" opacity=".9"/>
+  </g>
+  <g fill="#86ddc0">
+    <rect x="1005" y="94" width="4" height="4"/>
+    <rect x="1152" y="105" width="4" height="4" opacity=".75"/>
+  </g>
 </svg>
