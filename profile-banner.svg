@@ -1,61 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title description">
-  <title id="title">DumbDeV-cs — learning to code, one small project at a time</title>
-  <desc id="description">A cozy dark teal banner with two friendly, hand-drawn cartoon cats and a softly blinking cursor.</desc>
-  <rect width="1200" height="360" rx="22" fill="#172d34"/>
-  <path d="M0 300c181-27 356-30 543-11 79 8 137 15 205 7v64H0z" fill="#21434a" opacity=".55"/>
-  <path d="M65 62v236" stroke="#76d7bb" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="65" cy="62" r="5" fill="#f0bc78"/>
-
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="280" viewBox="0 0 1000 280" role="img" aria-labelledby="title desc">
+  <title id="title">DumbDeV-cs — learning one project at a time</title>
+  <desc id="desc">A cozy pixel-art desk with a laptop, a tiny robot, and a cat by the window.</desc>
+  <rect width="1000" height="280" rx="18" fill="#18252d"/>
+  <rect x="22" y="22" width="956" height="236" rx="12" fill="none" stroke="#31434a" stroke-width="2"/>
+  <g fill="#6d9284"><rect x="52" y="52" width="6" height="6"/><rect x="564" y="48" width="5" height="5"/><rect x="933" y="66" width="5" height="5"/></g>
   <g font-family="Segoe UI, Arial, sans-serif">
-    <text x="100" y="111" fill="#a8c9c2" font-size="13" font-weight="600" letter-spacing="2.5">DESKTOP APPS · TINY COMPANIONS</text>
-    <text x="96" y="190" fill="#f7f0df" font-size="58" font-weight="700" letter-spacing="-2">DumbDeV-cs</text>
-    <text x="100" y="240" fill="#d4e1d9" font-size="22">Learning to code, one small project</text>
-    <text x="100" y="271" fill="#d4e1d9" font-size="22">at a time.</text>
-    <rect x="204" y="249" width="2.5" height="25" rx="1.2" fill="#f0bc78">
-      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;.45;.5;.95;1" dur="1.2s" repeatCount="indefinite"/>
-    </rect>
+    <text x="72" y="86" fill="#9ccbb2" font-size="14" font-weight="700" letter-spacing="2">A LITTLE ABOUT ME</text>
+    <text x="68" y="146" fill="#f2e9d8" font-size="43" font-weight="700">DumbDeV-cs</text>
+    <rect x="72" y="166" width="54" height="4" fill="#e4b86c"/>
+    <text x="72" y="202" fill="#c3d0c8" font-family="Consolas, monospace" font-size="17">learning one project at a time</text>
   </g>
-
-  <!-- A little black-and-white doodle cat -->
-  <g stroke="#10191d" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-    <!-- tail -->
-    <path d="M823 278c-29 2-43-18-39-39 3-15 15-21 27-17 10 3 12 15 5 21-5 4-12 2-14-3" fill="none" stroke="#26353b" stroke-width="16"/>
-    <!-- body -->
-    <path d="M829 239c-8-23-3-53 15-68 19-16 55-16 73-1 18 15 23 42 15 69l-6 18H835z" fill="#303e43"/>
-    <path d="M847 225c6-13 15-20 27-20 14 0 24 10 29 25l-4 26h-48z" fill="#f3ead7" stroke-width="5"/>
-    <path d="M839 261c6 6 19 7 26 1m24 0c7 6 20 5 26-1" fill="none" stroke="#10191d" stroke-width="6"/>
-    <!-- head, ears -->
-    <path d="M819 155c-5-17-4-39 2-52l29 18c14-6 32-6 46 0l28-20c8 17 9 39 4 56 11 12 15 28 12 43-4 28-27 45-65 45-39 0-62-17-66-45-3-17 1-33 10-45z" fill="#303e43"/>
-    <path d="M832 118l16 10-13 13c-4-7-5-15-3-23zm75 0-15 10 13 13c4-7 5-15 2-23z" fill="#d78f94" stroke="none"/>
-    <!-- face -->
-    <ellipse cx="844" cy="165" rx="5" ry="7" fill="#f0bc78" stroke="none"/>
-    <path d="M892 160c0 6-2 10-6 10s-6-4-6-10 2-8 6-8 6 2 6 8z" fill="#f0bc78" stroke="none"/>
-    <path d="M862 181l7 5 7-5-7-5z" fill="#d98f91" stroke="none"/>
-    <path d="M869 186c-1 8-8 10-13 6m13-6c1 8 8 10 13 6" fill="none" stroke="#f3ead7" stroke-width="3.5"/>
-    <path d="M855 185l-23-4m23 11-25 4m59-11 23-4m-23 11 25 4" fill="none" stroke="#d7d2c4" stroke-width="2.5"/>
-  </g>
-
-  <!-- A warm ginger cat with one curious raised ear -->
-  <g stroke="#10191d" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-    <!-- curled tail -->
-    <path d="M1034 276c-32 3-44-14-38-32 5-15 23-18 31-8 6 8 1 17-7 17-4 0-7-3-7-7" fill="none" stroke="#d98755" stroke-width="16"/>
-    <!-- body and paws -->
-    <path d="M1038 239c-8-25-1-52 17-67 17-15 51-15 68 0 17 15 21 43 13 68l-5 17h-88z" fill="#e9aa70"/>
-    <path d="M1055 227c6-15 15-21 26-21s21 8 26 23l-4 23h-45z" fill="#f7e9cf" stroke-width="5"/>
-    <path d="M1047 259c7 8 19 8 26 1m27 0c6 7 18 7 25-1" fill="none" stroke="#10191d" stroke-width="6"/>
-    <!-- head and ears -->
-    <path d="M1028 155c-5-17-3-40 3-54l29 20c14-7 32-7 46 0l28-21c8 17 9 39 4 56 10 12 14 27 11 44-5 28-28 45-65 45-38 0-62-17-66-45-3-17 1-33 10-45z" fill="#e9aa70"/>
-    <path d="M1041 120l16 11-13 13c-4-8-5-16-3-24zm75 0-15 11 13 13c4-8 5-16 2-24z" fill="#d9878e" stroke="none"/>
-    <!-- forehead stripe, eyes and smile -->
-    <path d="M1071 129l-7 12m20-15-2 14m19-11 4 12" fill="none" stroke="#bc724d" stroke-width="4"/>
-    <path d="M1053 164c0 5-2 8-6 8s-6-3-6-8 2-8 6-8 6 3 6 8zm52 0c0 5-2 8-6 8s-6-3-6-8 2-8 6-8 6 3 6 8z" fill="#263a3a" stroke="none"/>
-    <path d="M1070 183l7 5 7-5-7-5z" fill="#b96168" stroke="none"/>
-    <path d="M1077 188c-1 8-8 10-13 6m13-6c1 8 8 10 13 6" fill="none" stroke="#76594c" stroke-width="3.5"/>
-    <path d="M1063 187l-20-4m20 11-21 4m55-11 20-4m-20 11 21 4" fill="none" stroke="#9a6c55" stroke-width="2.5"/>
-  </g>
-
-  <!-- A few hand-drawn accents, kept small and out of the text -->
-  <path d="M786 107l5-8 4 8m162 16 5-8 4 8m196 72 4-7 5 7" fill="none" stroke="#f0bc78" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="975" cy="93" r="3" fill="#80d8bd"/>
-  <circle cx="1157" cy="115" r="3" fill="#80d8bd"/>
+  <!-- window at dusk -->
+  <rect x="668" y="38" width="252" height="124" rx="5" fill="#344c55"/>
+  <rect x="677" y="47" width="234" height="106" fill="#b8c9b0"/>
+  <rect x="677" y="47" width="234" height="58" fill="#e2b983"/>
+  <rect x="677" y="105" width="234" height="48" fill="#718d84"/>
+  <rect x="702" y="91" width="24" height="14" fill="#879c83"/><rect x="745" y="82" width="34" height="23" fill="#879c83"/>
+  <rect x="802" y="89" width="18" height="16" fill="#879c83"/><rect x="845" y="76" width="42" height="29" fill="#879c83"/>
+  <rect x="783" y="38" width="7" height="124" fill="#344c55"/><rect x="668" y="98" width="252" height="7" fill="#344c55"/>
+  <!-- desk and shelf -->
+  <rect x="612" y="204" width="340" height="12" fill="#9b7957"/><rect x="632" y="216" width="14" height="31" fill="#795f49"/><rect x="920" y="216" width="14" height="31" fill="#795f49"/>
+  <!-- laptop -->
+  <path d="M700 139h119v61H700z" fill="#34434a" stroke="#0f171b" stroke-width="5"/>
+  <rect x="708" y="147" width="103" height="45" fill="#c8d8c5"/>
+  <rect x="719" y="157" width="28" height="4" fill="#758f7d"/><rect x="719" y="167" width="52" height="4" fill="#758f7d"/><rect x="719" y="177" width="38" height="4" fill="#d49e5c"/>
+  <path d="M687 201h145l-12 9H697z" fill="#65777a" stroke="#0f171b" stroke-width="4"/>
+  <!-- tiny potted plant -->
+  <rect x="645" y="180" width="27" height="23" fill="#c88765"/><rect x="650" y="170" width="8" height="14" fill="#8cac83"/><rect x="660" y="164" width="8" height="20" fill="#8cac83"/><rect x="639" y="174" width="8" height="10" fill="#8cac83"/>
+  <!-- little robot perched on laptop -->
+  <rect x="847" y="151" width="49" height="48" fill="#84bdb2" stroke="#31434a" stroke-width="5"/>
+  <rect x="859" y="167" width="6" height="6" fill="#24383a"/><rect x="879" y="167" width="6" height="6" fill="#24383a"/>
+  <rect x="862" y="181" width="21" height="4" fill="#46716b"/><rect x="866" y="139" width="10" height="12" fill="#e4b86c"/>
+  <!-- cat curled beside the laptop -->
+  <path d="M914 190v-27l13 8 10-8 13 8v22q-3 15-19 15t-17-18z" fill="#d9c9aa" stroke="#34434a" stroke-width="5"/>
+  <rect x="922" y="176" width="5" height="5" fill="#34434a"/><rect x="939" y="176" width="5" height="5" fill="#34434a"/>
+  <path d="M927 185h12" stroke="#b77e69" stroke-width="3"/><path d="M951 196q14-2 10-14" fill="none" stroke="#34434a" stroke-width="5"/>
 </svg>
