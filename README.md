@@ -15,6 +15,10 @@ Desktop apps · tiny companions · web projects
   <img src="assets/pixel-cats.gif" alt="Two little cat companions blinking and swishing their tails" width="300" />
 </p>
 
+<p align="center">
+  <img src="assets/learning-loop.gif" alt="Animated text: learning Python, building small things, one step at a time" width="520" />
+</p>
+
 ## Projects
 
 | Project | What it does |
