@@ -12,7 +12,7 @@ Desktop apps · tiny companions · web projects
 </div>
 
 <p align="center">
-  <img src="assets/tiny-cats.gif" alt="Two little cartoon cats blinking and swishing their tails" width="280" />
+  <img src="assets/tiny-cats.gif" alt="Two little cat companions blinking and swishing their tails" width="300" />
 </p>
 
 <p align="center">
