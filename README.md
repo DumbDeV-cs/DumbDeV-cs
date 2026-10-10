@@ -11,6 +11,14 @@ Desktop apps · tiny companions · small experiments
 
 </div>
 
+<p align="center">
+  <img src="assets/tiny-cats.gif" alt="Two tiny pixel cats blinking and swishing their tails" width="220" />
+</p>
+
+<p align="center">
+  <img src="assets/learning-loop.gif" alt="Animated text: learning Python, C++ and Dart; exploring Qt and Flutter; building small desktop projects" width="560" />
+</p>
+
 ## Projects
 
 | Project | What it does |
