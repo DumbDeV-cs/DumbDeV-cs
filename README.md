@@ -1,8 +1,10 @@
 <div align="center">
 
-<img src="profile-banner.svg" alt="DumbDeV-cs — learning one project at a time" width="100%" />
+<img src="assets/profile-banner.gif" alt="DumbDeV-cs — learning one project at a time" width="100%" />
 
 # Hi, I'm DumbDeV-cs
+
+<img src="assets/tagline-typing.gif" alt="Animated versions of my learning tagline" width="100%" />
 
 **Learning to code, one small project at a time.**  
 Desktop apps · tiny companions · web projects
@@ -19,6 +21,10 @@ Desktop apps · tiny companions · web projects
   <img src="assets/learning-loop.gif" alt="Animated text: learning Python, building small things, one step at a time" width="520" />
 </p>
 
+<p align="center">
+  <img src="assets/pixel-divider.svg" alt="Pixel-art divider" width="72%" />
+</p>
+
 ## Projects
 
 | Project | What it does |
@@ -28,9 +34,38 @@ Desktop apps · tiny companions · web projects
 | [ecommerce-platform](https://github.com/DumbDeV-cs/ecommerce-platform) | A nature-inspired Flutter Web store with a catalog, WhatsApp checkout, and an owner admin portal. <br> ![Dart](https://img.shields.io/badge/Dart-0175C2?style=flat-square&logo=dart&logoColor=white) ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white) |
 | [portfolio](https://github.com/DumbDeV-cs/portfolio) | My personal portfolio. |
 
+<p align="center">
+  <img src="assets/spidey-divider.gif" alt="A tiny pixel Spidey walking along a divider" width="100%" />
+</p>
+
+<p align="center">
+  <img src="assets/pixel-divider.svg" alt="Pixel-art divider" width="72%" />
+</p>
+
 ## Currently learning
 
 ![Python learning](https://img.shields.io/badge/Python-learning-3776AB?style=flat-square&logo=python&logoColor=white)
+
+<p align="center">
+  <img src="assets/pixel-divider.svg" alt="Pixel-art divider" width="72%" />
+</p>
+
+## Currently building
+
+- **[Project or feature]** — [What you're making in one short line.]
+- **[Small next step]** — [What you're trying or learning as you go.]
+
+<p align="center">
+  <img src="assets/pixel-divider.svg" alt="Pixel-art divider" width="72%" />
+</p>
+
+## Contribution graph
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DumbDeV-cs/DumbDeV-cs/output/github-snake-dark.gif" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DumbDeV-cs/DumbDeV-cs/output/github-snake-light.gif" />
+  <img src="https://raw.githubusercontent.com/DumbDeV-cs/DumbDeV-cs/output/github-snake-light.gif" alt="Animated snake following my GitHub contribution graph" width="100%" />
+</picture>
 
 <p align="center">
   <img src="assets/soft-divider.gif" alt="A quiet animated teal and amber divider" width="420" />

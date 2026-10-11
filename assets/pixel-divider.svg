@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="20" viewBox="0 0 720 20" role="img" aria-labelledby="title">
+  <title id="title">Small pixel-art divider</title>
+  <rect x="0" y="9" width="278" height="2" fill="#527c78"/>
+  <rect x="278" y="7" width="4" height="6" fill="#527c78"/>
+  <rect x="282" y="5" width="4" height="10" fill="#527c78"/>
+  <rect x="286" y="3" width="4" height="14" fill="#e4b86c"/>
+  <rect x="290" y="5" width="4" height="10" fill="#527c78"/>
+  <rect x="294" y="7" width="4" height="6" fill="#527c78"/>
+  <rect x="298" y="9" width="422" height="2" fill="#527c78"/>
+</svg>

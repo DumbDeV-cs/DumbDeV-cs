@@ -3,12 +3,17 @@
   <desc id="desc">A cozy pixel-art desk with a laptop, a tiny robot, and a cat by the window.</desc>
   <rect width="1000" height="280" rx="18" fill="#18252d"/>
   <rect x="22" y="22" width="956" height="236" rx="12" fill="none" stroke="#31434a" stroke-width="2"/>
-  <g fill="#6d9284"><rect x="52" y="52" width="6" height="6"/><rect x="564" y="48" width="5" height="5"/><rect x="933" y="66" width="5" height="5"/></g>
+  <g fill="#6d9284">
+    <rect x="52" y="52" width="6" height="6"><animate attributeName="opacity" values=".45;1;.45" dur="4.2s" repeatCount="indefinite"/></rect>
+    <rect x="564" y="48" width="5" height="5"><animate attributeName="opacity" values="1;.35;1" dur="3.7s" repeatCount="indefinite"/></rect>
+    <rect x="933" y="66" width="5" height="5"><animate attributeName="opacity" values=".4;1;.4" dur="4.8s" repeatCount="indefinite"/></rect>
+  </g>
   <g font-family="Segoe UI, Arial, sans-serif">
     <text x="72" y="86" fill="#9ccbb2" font-size="14" font-weight="700" letter-spacing="2">A LITTLE ABOUT ME</text>
     <text x="68" y="146" fill="#f2e9d8" font-size="43" font-weight="700">DumbDeV-cs</text>
     <rect x="72" y="166" width="54" height="4" fill="#e4b86c"/>
     <text x="72" y="202" fill="#c3d0c8" font-family="Consolas, monospace" font-size="17">learning one project at a time</text>
+    <rect x="319" y="186" width="3" height="19" rx="1" fill="#e4b86c"><animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite"/></rect>
   </g>
   <!-- window at dusk -->
   <rect x="668" y="38" width="252" height="124" rx="5" fill="#344c55"/>
@@ -23,16 +28,26 @@
   <!-- laptop -->
   <path d="M700 139h119v61H700z" fill="#34434a" stroke="#0f171b" stroke-width="5"/>
   <rect x="708" y="147" width="103" height="45" fill="#c8d8c5"/>
-  <rect x="719" y="157" width="28" height="4" fill="#758f7d"/><rect x="719" y="167" width="52" height="4" fill="#758f7d"/><rect x="719" y="177" width="38" height="4" fill="#d49e5c"/>
+  <rect x="719" y="157" width="28" height="4" fill="#758f7d"><animate attributeName="opacity" values=".15;1;1" keyTimes="0;.28;1" dur="4s" repeatCount="indefinite"/></rect><rect x="719" y="167" width="52" height="4" fill="#758f7d"><animate attributeName="opacity" values=".15;.15;1;1" keyTimes="0;.25;.5;1" dur="4s" repeatCount="indefinite"/></rect><rect x="719" y="177" width="38" height="4" fill="#d49e5c"><animate attributeName="opacity" values=".15;.15;.15;1;1" keyTimes="0;.2;.45;.7;1" dur="4s" repeatCount="indefinite"/></rect>
   <path d="M687 201h145l-12 9H697z" fill="#65777a" stroke="#0f171b" stroke-width="4"/>
   <!-- tiny potted plant -->
   <rect x="645" y="180" width="27" height="23" fill="#c88765"/><rect x="650" y="170" width="8" height="14" fill="#8cac83"/><rect x="660" y="164" width="8" height="20" fill="#8cac83"/><rect x="639" y="174" width="8" height="10" fill="#8cac83"/>
   <!-- little robot perched on laptop -->
-  <rect x="847" y="151" width="49" height="48" fill="#84bdb2" stroke="#31434a" stroke-width="5"/>
+  <g id="tiny-robot"><animateTransform attributeName="transform" type="translate" values="0 0;0 -3;0 0" dur="3.6s" repeatCount="indefinite"/><rect x="847" y="151" width="49" height="48" fill="#84bdb2" stroke="#31434a" stroke-width="5"/>
   <rect x="859" y="167" width="6" height="6" fill="#24383a"/><rect x="879" y="167" width="6" height="6" fill="#24383a"/>
   <rect x="862" y="181" width="21" height="4" fill="#46716b"/><rect x="866" y="139" width="10" height="12" fill="#e4b86c"/>
+  </g>
   <!-- cat curled beside the laptop -->
   <path d="M914 190v-27l13 8 10-8 13 8v22q-3 15-19 15t-17-18z" fill="#d9c9aa" stroke="#34434a" stroke-width="5"/>
   <rect x="922" y="176" width="5" height="5" fill="#34434a"/><rect x="939" y="176" width="5" height="5" fill="#34434a"/>
   <path d="M927 185h12" stroke="#b77e69" stroke-width="3"/><path d="M951 196q14-2 10-14" fill="none" stroke="#34434a" stroke-width="5"/>
+  <!-- a tiny web-swinging companion near the window -->
+  <g id="spider-mascot">
+    <animateTransform attributeName="transform" type="rotate" values="-5 946 144;5 946 144;-5 946 144" dur="4s" repeatCount="indefinite"/>
+    <path d="M946 110v19" stroke="#c3d0c8" stroke-width="2"/>
+    <rect x="939" y="129" width="14" height="12" fill="#b94c4b" stroke="#34434a" stroke-width="2"/>
+    <rect x="942" y="133" width="3" height="2" fill="#f2e9d8"/><rect x="948" y="133" width="3" height="2" fill="#f2e9d8"/>
+    <rect x="941" y="141" width="10" height="9" fill="#527c91" stroke="#34434a" stroke-width="2"/>
+    <path d="M941 143l-5 3m15-3l5 3m-15 1l-5 4m15-4l5 4" stroke="#34434a" stroke-width="2"/>
+  </g>
 </svg>

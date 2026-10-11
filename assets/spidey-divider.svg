@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="46" viewBox="0 0 600 46" role="img" aria-labelledby="title desc">
+  <title id="title">Pixel Spidey companion walking along a divider</title>
+  <desc id="desc">A tiny red-and-blue pixel hero walks gently along a teal line.</desc>
+  <path d="M12 34h576" stroke="#527c78" stroke-width="2" stroke-dasharray="4 4"/>
+  <g>
+    <animateMotion dur="8s" repeatCount="indefinite" path="M 12 0 H 576"/>
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -2;0 0" dur=".5s" repeatCount="indefinite"/>
+      <path d="M14 0v7" stroke="#879b98" stroke-width="2"/>
+      <rect x="8" y="7" width="12" height="11" fill="#b94c4b" stroke="#18252d" stroke-width="2"/>
+      <rect x="10" y="11" width="3" height="2" fill="#f2e9d8"/><rect x="15" y="11" width="3" height="2" fill="#f2e9d8"/>
+      <rect x="9" y="18" width="10" height="10" fill="#527c91" stroke="#18252d" stroke-width="2"/>
+      <path d="M9 20l-5 3 5 2m10-5l5 3-5 2M10 26l-4 4 5-1m7-3l4 4-5-1" fill="none" stroke="#18252d" stroke-width="2"/>
+      <rect x="11" y="28" width="3" height="5" fill="#b94c4b"/><rect x="15" y="28" width="3" height="5" fill="#b94c4b"/>
+    </g>
+  </g>
+</svg>
