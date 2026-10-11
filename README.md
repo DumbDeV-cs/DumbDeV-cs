@@ -34,11 +34,6 @@ Desktop apps · tiny companions · web projects
 
 ![Python learning](https://img.shields.io/badge/Python-learning-3776AB?style=flat-square&logo=python&logoColor=white)
 
-## Currently building
-
-- **[Project or feature]** — [What you're making in one short line.]
-- **[Small next step]** — [What you're trying or learning as you go.]
-
 ## Contribution graph
 
 <picture>
