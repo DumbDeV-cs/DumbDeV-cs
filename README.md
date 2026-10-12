@@ -4,6 +4,8 @@
 
 # Hi, I'm DumbDeV-cs
 
+<img src="https://readme-typing-svg.demolab.com?font=Consolas&amp;size=16&amp;duration=2600&amp;pause=1100&amp;color=9CCBB2&amp;center=true&amp;vCenter=true&amp;width=660&amp;lines=Learning+to+code%2C+one+small+project+at+a+time;Desktop+apps+%C2%B7+pixel+art+%C2%B7+tiny+companions;Learn+by+building%2C+then+make+it+a+little+better" alt="Animated tagline" width="100%" />
+
 <img src="assets/tagline-typing.gif" alt="Animated versions of my learning tagline" width="100%" />
 
 **Learning to code, one small project at a time.**  
@@ -20,6 +22,11 @@ Desktop apps · tiny companions · web projects
 <p align="center">
   <img src="assets/learning-loop.gif" alt="Animated text: learning Python, building small things, one step at a time" width="520" />
 </p>
+
+## Currently building
+
+- [project name] - [one short sentence]
+- [project name] - [one short sentence]
 
 ## Projects
 
@@ -47,6 +54,8 @@ Desktop apps · tiny companions · web projects
 </p>
 
 <div align="center">
+
+<img src="https://komarev.com/ghpvc/?username=DumbDeV-cs&amp;style=flat-square&amp;color=527c78&amp;label=profile%20views" alt="Profile views" />
 
 *Still learning. Still building.*
 
