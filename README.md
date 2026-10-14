@@ -23,7 +23,7 @@ Desktop apps · tiny companions · web projects
   <img src="assets/learning-loop.gif" alt="Animated text: learning Python, building small things, one step at a time" width="520" />
 </p>
 
-## Projects
+## Projects!
 
 | Project | What it does |
 | --- | --- |
