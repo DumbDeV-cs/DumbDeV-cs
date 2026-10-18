@@ -2,8 +2,8 @@
 """
 Stealth Weather Pro
 ===================
-A polished desktop weather app (Open-Meteo, no API key) with a hidden,
-encrypted vault that bookmarks file/folder LOCATIONS (never file contents).
+A polished desktop weather app (Open-Meteo, no API key) with a private vault for
+actual imported files and folders. Vault metadata is encrypted; imported files are stored locally.
 
 Install:
     pip install customtkinter requests Pillow cryptography
@@ -18,8 +18,9 @@ How it works
 * Typing the exact code into the city search box and pressing Enter (or Search)
   opens the vault. The check happens locally BEFORE any network call.
 * Anything else is a normal city search ("Location not found" if no match).
-* The vault is a Fernet-encrypted file keyed from your code. It stores paths,
-  display names, dates, tags and notes. No file contents are ever copied.
+* The vault metadata is Fernet-encrypted with a key derived from your code.
+  Imported files and folders are copied as real local items under saved_items;
+  those copies are ordinary files, while their metadata remains encrypted.
 
 Access-code rules (and why):
 * At least 6 characters.
@@ -43,6 +44,7 @@ import os
 import platform
 import queue
 import subprocess
+import shutil
 import sys
 import threading
 import time
@@ -76,7 +78,8 @@ except ImportError:  # icon is optional
 # ----------------------------------------------------------------------------
 APP_DIR = Path(os.environ.get("WX_PRO_HOME", Path.home() / ".wx_pro"))
 CONFIG_PATH = APP_DIR / ".config.json"
-VAULT_PATH = APP_DIR / "forecast_cache.bin"  # looks like a weather cache
+VAULT_PATH = APP_DIR / "forecast_cache.bin"  # encrypted vault metadata
+SAVED_ITEMS_DIR = APP_DIR / "saved_items"  # actual imported file and folder copies
 
 PBKDF2_ITERS = 300_000
 IDLE_LOCK_MS = 5 * 60 * 1000       # vault auto-locks after 5 idle minutes
@@ -236,7 +239,7 @@ class Security:
 
 
 class Vault:
-    """Encrypted list of path bookmarks. Contents of files are never stored."""
+    """Encrypted metadata for real file and folder copies managed by this app."""
 
     def __init__(self, key: bytes):
         self.key = key
@@ -274,6 +277,45 @@ class Vault:
         self.save()
         return True
 
+    def import_path(self, source: str) -> bool:
+        """Copy a selected file or whole folder into the app's managed storage."""
+        src = Path(source).resolve()
+        if not src.exists() or not (src.is_file() or src.is_dir()):
+            raise FileNotFoundError("Choose an existing file or folder.")
+        managed = SAVED_ITEMS_DIR.resolve()
+        if src == managed or managed in src.parents:
+            raise ValueError("That item is already inside the app's saved files folder.")
+        if any(e.get("source") == str(src) for e in self.entries):
+            return False
+
+        eid = uuid.uuid4().hex[:12]
+        item_dir = SAVED_ITEMS_DIR / eid
+        item_dir.mkdir(parents=True, exist_ok=False)
+        name = src.name or "Saved item"
+        target = item_dir / name
+        try:
+            if src.is_dir():
+                shutil.copytree(src, target, symlinks=True)
+                kind = "folder"
+            else:
+                shutil.copy2(src, target)
+                kind = "file"
+            entry = {
+                "id": eid, "name": name, "path": str(target.resolve()), "source": str(src),
+                "kind": kind, "added": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "tags": "", "note": "",
+            }
+            self.entries.append(entry)
+            try:
+                self.save()
+            except Exception:
+                self.entries = [e for e in self.entries if e.get("id") != eid]
+                raise
+            return True
+        except Exception:
+            shutil.rmtree(item_dir, ignore_errors=True)
+            raise
+
     def get(self, eid: str) -> dict | None:
         return next((e for e in self.entries if e["id"] == eid), None)
 
@@ -285,7 +327,17 @@ class Vault:
 
     def remove(self, ids):
         ids = set(ids)
+        removed = [e for e in self.entries if e["id"] in ids]
         self.entries = [e for e in self.entries if e["id"] not in ids]
+        managed = SAVED_ITEMS_DIR.resolve()
+        for e in removed:
+            path = Path(e.get("path", ""))
+            try:
+                resolved = path.resolve()
+                if managed in resolved.parents and resolved.exists():
+                    shutil.rmtree(resolved.parent, ignore_errors=True)
+            except (OSError, RuntimeError):
+                pass
         self.save()
 
     def rekey(self, new_key: bytes):
@@ -400,7 +452,7 @@ def fetch_forecast(place: Place, units: str) -> dict:
             "wind_speed_unit": "kmh" if metric else "mph",
             "current": "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,"
                        "wind_speed_10m,wind_direction_10m",
-            "hourly": "temperature_2m,weather_code,is_day",
+            "hourly": "temperature_2m,weather_code,is_day,precipitation_probability",
             "daily": "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max",
         },
     )
@@ -410,7 +462,8 @@ def fetch_forecast(place: Place, units: str) -> dict:
         start = next((i for i, t in enumerate(hr["time"]) if t >= start_key), 0)
         hourly = [
             {"time": hr["time"][i], "temp": hr["temperature_2m"][i], "code": hr["weather_code"][i],
-             "is_day": bool(hr["is_day"][i])}
+             "is_day": bool(hr["is_day"][i]),
+             "precip": (hr.get("precipitation_probability") or [None] * len(hr["time"]))[i]}
             for i in range(start, min(start + 8, len(hr["time"])))
         ]
         daily = [
@@ -460,7 +513,22 @@ class WeatherIcon(tk.Canvas):
     def __init__(self, master, size=150, bg="#000000"):
         super().__init__(master, width=size, height=size, bg=bg, highlightthickness=0, bd=0)
         self.size, self.kind, self.is_day, self.t, self._job = size, "clear", True, 0, None
+        self.running = True
         self._tick()
+
+    def stop_animation(self):
+        self.running = False
+        if self._job:
+            try:
+                self.after_cancel(self._job)
+            except tk.TclError:
+                pass
+            self._job = None
+
+    def start_animation(self):
+        if not self.running:
+            self.running = True
+            self._tick()
 
     def set_state(self, kind: str, is_day: bool):
         self.kind, self.is_day = kind, is_day
@@ -475,30 +543,53 @@ class WeatherIcon(tk.Canvas):
 
     def _tick(self):
         try:
+            if not self.running:
+                return
             self.t += 1
             self._draw()
-            self._job = self.after(40, self._tick)
+            self._job = self.after(120, self._tick)
         except tk.TclError:
             pass
 
     # primitives -----------------------------------------------------------
     def _cloud(self, cx, cy, s, fill=WHITE):
-        c = self.create_oval
-        c(cx - 40 * s, cy - 6 * s, cx - 4 * s, cy + 30 * s, fill=fill, outline="")
-        c(cx - 24 * s, cy - 30 * s, cx + 22 * s, cy + 16 * s, fill=fill, outline="")
-        c(cx + 4 * s, cy - 12 * s, cx + 42 * s, cy + 30 * s, fill=fill, outline="")
-        self.create_rectangle(cx - 22 * s, cy + 4 * s, cx + 24 * s, cy + 30 * s, fill=fill, outline="")
+        # A soft offset shadow and a crisp highlight give the cloud a layered look.
+        shadow = mix(fill, "#26354A", 0.22)
+        for ox, oy, color in ((0, 3 * s, shadow), (0, 0, fill)):
+            self.create_oval(cx - 40*s + ox, cy - 6*s + oy, cx - 4*s + ox, cy + 30*s + oy, fill=color, outline="")
+            self.create_oval(cx - 24*s + ox, cy - 30*s + oy, cx + 22*s + ox, cy + 16*s + oy, fill=color, outline="")
+            self.create_oval(cx + 4*s + ox, cy - 12*s + oy, cx + 42*s + ox, cy + 30*s + oy, fill=color, outline="")
+            self.create_rectangle(cx - 22*s + ox, cy + 4*s + oy, cx + 24*s + ox, cy + 30*s + oy, fill=color, outline="")
+        self.create_arc(cx - 21*s, cy - 29*s, cx + 16*s, cy + 8*s, start=55, extent=92,
+                        style="arc", outline=mix(fill, WHITE, 0.35), width=max(1, 2*s))
+
+    def _stars(self, cx, cy, s, bg):
+        for i, (dx, dy) in enumerate([(-48,-34),(44,-43),(52,8),(-43,30),(8,48),(28,-8)]):
+            pulse = 0.35 + 0.55 * (0.5 + 0.5 * math.sin(self.t * 0.12 + i * 1.8))
+            r = (1.1 + (i % 2) * 0.7) * s
+            col = mix(bg, "#E7F1FF", pulse)
+            x, y = cx + dx*s, cy + dy*s
+            self.create_line(x-r*2, y, x+r*2, y, fill=col, width=1)
+            self.create_line(x, y-r*2, x, y+r*2, fill=col, width=1)
+            self.create_oval(x-r, y-r, x+r, y+r, fill=col, outline="")
 
     def _sun(self, x, y, s):
+        pulse = 0.5 + 0.5 * math.sin(self.t * 0.06)
+        for ring in range(4, 0, -1):
+            r = (31 + ring * 5 + pulse * 3) * s
+            self.create_oval(x-r, y-r, x+r, y+r, fill=mix(self.cget("bg"), "#FFD43B", 0.08 + ring * 0.025), outline="")
         for i in range(12):
             a = self.t * 0.02 + i * math.pi / 6
             r1, r2 = 36 * s, (46 + 3 * math.sin(self.t * 0.1 + i)) * s
             self.create_line(x + r1 * math.cos(a), y + r1 * math.sin(a), x + r2 * math.cos(a), y + r2 * math.sin(a),
                              fill="#FFD43B", width=max(2, 4 * s), capstyle="round")
-        self.create_oval(x - 26 * s, y - 26 * s, x + 26 * s, y + 26 * s, fill="#FFD43B", outline="")
-        self.create_oval(x - 19 * s, y - 19 * s, x + 19 * s, y + 19 * s, fill="#FFE066", outline="")
+        self.create_oval(x - 26 * s, y - 26 * s, x + 26 * s, y + 26 * s, fill="#F6A91A", outline="")
+        self.create_oval(x - 23 * s, y - 23 * s, x + 23 * s, y + 23 * s, fill="#FFD43B", outline="")
+        self.create_oval(x - 16 * s, y - 17 * s, x + 14 * s, y + 13 * s, fill="#FFF0A6", outline="")
 
     def _moon(self, x, y, s, bg):
+        halo = 38 * s
+        self.create_oval(x-halo, y-halo, x+halo, y+halo, fill=mix(bg, "#C8D8FF", 0.10), outline="")
         self.create_oval(x - 26 * s, y - 26 * s, x + 26 * s, y + 26 * s, fill="#F4F1DE", outline="")
         self.create_oval(x - 14 * s, y - 34 * s, x + 30 * s, y + 10 * s, fill=bg, outline="")
         for i, (dx, dy) in enumerate([(-50, -40), (44, -46), (50, 20), (-46, 34), (10, 52)]):
@@ -519,6 +610,8 @@ class WeatherIcon(tk.Canvas):
         s = self.size / 150
         cx = cy = self.size / 2
         t, bg, k = self.t, self.cget("bg"), self.kind
+        if not self.is_day:
+            self._stars(cx, cy, s, bg)
         if k == "clear":
             self._sun(cx, cy, s) if self.is_day else self._moon(cx, cy, s, bg)
         elif k == "clouds":
@@ -579,7 +672,7 @@ class Spinner(tk.Canvas):
             self.create_arc(p, p, self.size - p, self.size - p, start=self.angle, extent=110, style="arc",
                             outline=self.color, width=3)
             self.angle = (self.angle + 16) % 360
-            self.after(30, self._tick)
+            self.after(80, self._tick)
         except tk.TclError:
             self.running = False
 
@@ -588,12 +681,30 @@ class PulseDot(tk.Canvas):
     def __init__(self, master, bg="#000000"):
         super().__init__(master, width=18, height=18, bg=bg, highlightthickness=0, bd=0)
         self.color, self.t = "#34D399", 0
+        self.running = True
+        self._job = None
         self._tick()
+
+    def stop_animation(self):
+        self.running = False
+        if self._job:
+            try:
+                self.after_cancel(self._job)
+            except tk.TclError:
+                pass
+            self._job = None
+
+    def start_animation(self):
+        if not self.running:
+            self.running = True
+            self._tick()
 
     def set_state(self, live: bool):
         self.color = "#34D399" if live else "#F87171"
 
     def _tick(self):
+        if not self.running:
+            return
         try:
             self.delete("all")
             self.t += 1
@@ -601,7 +712,8 @@ class PulseDot(tk.Canvas):
             r = 3 + 6 * ph
             self.create_oval(9 - r, 9 - r, 9 + r, 9 + r, outline=mix(self.color, self.cget("bg"), ph), width=1.5)
             self.create_oval(5.5, 5.5, 12.5, 12.5, fill=self.color, outline="")
-            self.after(50, self._tick)
+            if self.running:
+                self._job = self.after(120, self._tick)
         except tk.TclError:
             pass
 
@@ -695,9 +807,14 @@ class WeatherView(ctk.CTkFrame):
         self._q: queue.Queue = queue.Queue()
         self._load_seq = self._suggest_seq = self._theme_token = self._fade_token = 0
         self._suggest_job = self._toast_job = None
+        self._chart_anim_job = None
+        self._chart_canvas = None
+        self._chart_points = []
+        self._chart_index = 0
+        self._chart_marker = None
         self._build()
         self._apply_theme(self.bg)
-        self.after(60, self._drain)
+        self._drain_job = self.after(100, self._drain)
         self.after(REFRESH_MS, self._auto_refresh)
         self._restore_last()
 
@@ -715,7 +832,25 @@ class WeatherView(ctk.CTkFrame):
                     traceback.print_exc()
         except queue.Empty:
             pass
-        self.after(60, self._drain)
+        self._drain_job = self.after(100, self._drain)
+
+    def pause_background(self):
+        if self._drain_job:
+            self.after_cancel(self._drain_job)
+            self._drain_job = None
+        self.icon.stop_animation()
+        self.dot.stop_animation()
+        if self._chart_anim_job:
+            self.after_cancel(self._chart_anim_job)
+            self._chart_anim_job = None
+
+    def resume_background(self):
+        self.icon.start_animation()
+        self.dot.start_animation()
+        if self._chart_canvas and self._chart_points:
+            self._animate_chart_marker()
+        if not self._drain_job:
+            self._drain_job = self.after(100, self._drain)
 
     # ---- layout ------------------------------------------------------------
     def _card(self, parent, radius=24):
@@ -821,7 +956,7 @@ class WeatherView(ctk.CTkFrame):
         card = self._card(parent)
         card.grid(row=1, column=0, sticky="nsew", pady=(7, 0))
         card.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(card, text="HOURLY FORECAST", font=font(11, "bold"), text_color=MUTED).grid(
+        ctk.CTkLabel(card, text="NEXT HOURS  ·  TEMPERATURE & RAIN CHANCE", font=font(11, "bold"), text_color=MUTED).grid(
             row=0, column=0, sticky="w", padx=20, pady=(14, 4))
         self.hourly_row = ctk.CTkFrame(card, fg_color="transparent")
         self.hourly_row.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 12))
@@ -919,7 +1054,7 @@ class WeatherView(ctk.CTkFrame):
                 except tk.TclError:
                     pass
             if i < steps:
-                self.after(30, lambda: step(i + 1))
+                self.after(60, lambda: step(i + 1))
 
         step(0)
 
@@ -1143,6 +1278,10 @@ class WeatherView(ctk.CTkFrame):
         self.status.configure(text=f"Live · updated {datetime.now().strftime('%I:%M %p').lstrip('0')}")
 
     def _build_hourly_rows(self, d):
+        if self._chart_anim_job:
+            self.after_cancel(self._chart_anim_job)
+            self._chart_anim_job = None
+        self._chart_canvas, self._chart_points, self._chart_marker = None, [], None
         for ch in self.hourly_row.winfo_children():
             ch.destroy()
         values = [h["temp"] for h in d["hourly"]]
@@ -1154,10 +1293,23 @@ class WeatherView(ctk.CTkFrame):
         low, high = min(values), max(values)
         span = max(high - low, 1)
         pts = [(16 + i * (width - 32) / max(len(values) - 1, 1), 40 - (v - low) / span * 26) for i, v in enumerate(values)]
+        if pts:
+            area = [pts[0][0], 48] + [coord for point in pts for coord in point] + [pts[-1][0], 48]
+            chart.create_polygon(area, fill=mix(self.bg, "#67B8FF", 0.22), outline="")
         for a, b in zip(pts, pts[1:]):
-            chart.create_line(*a, *b, fill="#A9D5FF", width=3, smooth=True)
+            chart.create_line(*a, *b, fill=mix(self.bg, "#B8DEFF", 0.86), width=5, smooth=True)
+            chart.create_line(*a, *b, fill="#FFFFFF", width=2, smooth=True)
         for x, y in pts:
             chart.create_oval(x-3, y-3, x+3, y+3, fill=WHITE, outline="#A9D5FF", width=1)
+        if pts:
+            self._chart_canvas, self._chart_points = chart, pts
+            self._chart_index = 0
+            x, y = pts[0]
+            self._chart_marker = (
+                chart.create_oval(x-7, y-7, x+7, y+7, outline="#9AD7FF", width=2),
+                chart.create_oval(x-2, y-2, x+2, y+2, fill=WHITE, outline="")
+            )
+            self._animate_chart_marker()
         for i, h in enumerate(d["hourly"]):
             self.hourly_row.grid_columnconfigure(i, weight=1, uniform="h")
             col = ctk.CTkFrame(self.hourly_row, fg_color="transparent")
@@ -1166,6 +1318,27 @@ class WeatherView(ctk.CTkFrame):
             ctk.CTkLabel(col, text=when, font=font(12), text_color=MUTED).pack(pady=(2, 4))
             ctk.CTkLabel(col, text=describe(h["code"], h["is_day"])[2], font=font(24)).pack()
             ctk.CTkLabel(col, text=f"{round(h['temp'])}°", font=font(16, "bold")).pack(pady=(4, 0))
+            chance = h.get("precip")
+            ctk.CTkLabel(col, text="—" if chance is None else f"{chance}%", font=font(10),
+                         text_color="#A9D5FF" if chance and chance >= 20 else MUTED).pack(pady=(1, 0))
+            rainbar = tk.Canvas(col, width=42, height=4, bg=mix(self.bg, WHITE, 0.26), highlightthickness=0, bd=0)
+            rainbar.pack(pady=(1, 4))
+            self._canv_card.append(rainbar)
+            if chance:
+                rainbar.create_line(1, 2, 1 + 40 * chance / 100, 2, fill="#75C5FF", width=4, capstyle="round")
+
+    def _animate_chart_marker(self):
+        if not self._chart_canvas or not self._chart_points or not self._chart_marker:
+            return
+        try:
+            x, y = self._chart_points[self._chart_index]
+            outer, inner = self._chart_marker
+            self._chart_canvas.coords(outer, x-7, y-7, x+7, y+7)
+            self._chart_canvas.coords(inner, x-2, y-2, x+2, y+2)
+            self._chart_index = (self._chart_index + 1) % len(self._chart_points)
+            self._chart_anim_job = self.after(260, self._animate_chart_marker)
+        except tk.TclError:
+            self._chart_anim_job = None
 
     def _build_daily_rows(self, d):
         for ch in self.daily_body.winfo_children():
@@ -1196,7 +1369,7 @@ class WeatherView(ctk.CTkFrame):
 
 
 # ----------------------------------------------------------------------------
-# VAULT VIEW (file-location bookmarks)
+# VAULT VIEW (managed file and folder copies)
 # ----------------------------------------------------------------------------
 class ModalDialog(ctk.CTkToplevel):
     def __init__(self, master, title, size):
@@ -1285,7 +1458,7 @@ class VaultView(ctk.CTkFrame):
         titles = ctk.CTkFrame(head, fg_color="transparent")
         titles.pack(side="left")
         ctk.CTkLabel(titles, text="🔐  Private Vault", font=font(26, "bold"), text_color=V_TEXT).pack(anchor="w")
-        ctk.CTkLabel(titles, text="Saves file and folder locations only. File contents are never copied.",
+        ctk.CTkLabel(titles, text="Real local copies are saved in app storage; vault metadata is encrypted.",
                      font=font(12), text_color=V_MUTED).pack(anchor="w")
         ctk.CTkButton(head, text="🔒  Lock & Return to Weather", height=44, width=230, corner_radius=22,
                       fg_color=V_DANGER, hover_color="#C93A3F", font=font(14, "bold"), command=app.lock_vault).pack(side="right")
@@ -1297,7 +1470,7 @@ class VaultView(ctk.CTkFrame):
         # toolbar
         bar = ctk.CTkFrame(self, fg_color="transparent")
         bar.pack(fill="x", padx=28, pady=(14, 10))
-        for text, cmd, accent in [("＋ Add files", self._add_files, True), ("＋ Add folder", self._add_folder, True),
+        for text, cmd, accent in [("＋ Import files", self._add_files, True), ("＋ Import folder", self._add_folder, True),
                                   ("Create file", self._create_file, True), ("Create folder", self._create_folder, True),
                                   ("Open", self._open_location, False), ("Edit", self._edit, False),
                                   ("Remove", self._remove, False)]:
@@ -1322,7 +1495,7 @@ class VaultView(ctk.CTkFrame):
         sb.pack(side="right", fill="y", padx=(0, 4), pady=8)
         self.tree.pack(fill="both", expand=True, padx=(8, 0), pady=8)
         self.tree.bind("<Double-1>", self._on_double)
-        self.empty = ctk.CTkLabel(wrap, text="No saved locations yet.\nUse “Add files” or “Add folder” to bookmark them.",
+        self.empty = ctk.CTkLabel(wrap, text="No saved items yet.\nImport or create files and folders to keep real copies here.",
                                   text_color=V_MUTED, font=font(14), justify="center")
 
         self.msg = ctk.CTkLabel(self, text="", font=font(12), text_color=V_MUTED, anchor="w")
@@ -1368,30 +1541,46 @@ class VaultView(ctk.CTkFrame):
             self.empty.place_forget()
         else:
             self.empty.place(relx=0.5, rely=0.5, anchor="center")
-        self.say(f"{len(rows)} of {len(self.vault.entries)} item(s)  ·  paths and notes only, encrypted on disk")
+        self.say(f"{len(rows)} of {len(self.vault.entries)} item(s)  ·  encrypted list · copies kept in saved_items")
 
     def _selected(self) -> list[dict]:
         return [e for e in (self.vault.get(i) for i in self.tree.selection()) if e]
 
     # ---- actions ------------------------------------------------------------
+    def _import_paths(self, paths):
+        paths = list(paths)
+        if not paths:
+            return
+        self.say("Copying files into the app’s saved files folder…")
+        def work():
+            added, errors = 0, []
+            for path in paths:
+                try:
+                    added += bool(self.vault.import_path(path))
+                except Exception as exc:
+                    errors.append(f"{Path(path).name}: {exc}")
+            def done():
+                if not self.winfo_exists():
+                    return
+                self.refresh()
+                msg = f"Copied {added} item(s) into saved files."
+                if errors:
+                    msg += f" {len(errors)} could not be copied."
+                self.say(msg)
+                if errors:
+                    messagebox.showwarning("Some items were not copied", "\n".join(errors[:5]), parent=self)
+            self.after(0, done)
+        threading.Thread(target=work, daemon=True).start()
+
     def _add_files(self):
-        paths = filedialog.askopenfilenames(title="Choose files to link")
-        added = sum(self.vault.add_path(p) for p in paths)
-        self.refresh()
-        if paths:
-            self.say(f"Linked {added} new file(s)." if added else "Those files are already saved.")
+        self._import_paths(filedialog.askopenfilenames(title="Choose files to copy into saved files"))
 
     def _add_folder(self):
-        p = filedialog.askdirectory(title="Choose a folder to link")
+        p = filedialog.askdirectory(title="Choose a folder to copy into saved files")
         if p:
-            ok = self.vault.add_path(p)
-            self.refresh()
-            self.say("Folder linked." if ok else "That folder is already saved.")
+            self._import_paths([p])
 
     def _create_item(self, kind):
-        parent = filedialog.askdirectory(title=f"Choose where to create the {kind}")
-        if not parent:
-            return
         name = simpledialog.askstring(f"Create {kind}", f"Name for the new {kind}:", parent=self)
         if not name:
             return
@@ -1399,21 +1588,23 @@ class VaultView(ctk.CTkFrame):
         if name in (".", "..") or Path(name).name != name or any(ch in name for ch in "\\/"):
             messagebox.showerror("Invalid name", "Enter a simple name without folder separators.", parent=self)
             return
-        target = Path(parent) / name
+        if kind == "file" and not Path(name).suffix:
+            name += ".txt"
+        item_dir = SAVED_ITEMS_DIR / uuid.uuid4().hex[:12]
+        target = item_dir / name
         try:
+            item_dir.mkdir(parents=True, exist_ok=False)
             if kind == "folder":
                 target.mkdir()
             else:
-                if not target.suffix:
-                    target = target.with_suffix(".txt")
-                with target.open("x", encoding="utf-8") as f:
-                    f.write("")
+                target.write_text("", encoding="utf-8")
             self.vault.add_path(str(target))
             self.refresh()
-            self.say(f"Created and saved {target.name}.")
+            self.say(f"Created {target.name} in saved files.")
         except FileExistsError:
-            messagebox.showerror("Already exists", f"{target.name} already exists in that folder.", parent=self)
+            messagebox.showerror("Already exists", f"{target.name} already exists.", parent=self)
         except OSError as exc:
+            shutil.rmtree(item_dir, ignore_errors=True)
             messagebox.showerror("Could not create item", str(exc), parent=self)
 
     def _create_file(self):
@@ -1450,7 +1641,7 @@ class VaultView(ctk.CTkFrame):
         if not sel:
             self.say("Select one or more items first.")
             return
-        if messagebox.askyesno("Remove", f"Remove {len(sel)} saved location(s)?\nThe files themselves are not touched.", parent=self):
+        if messagebox.askyesno("Remove", f"Remove {len(sel)} saved item(s) and their copies from the app?", parent=self):
             self.vault.remove([e["id"] for e in sel])
             self.refresh()
 
@@ -1537,6 +1728,8 @@ class App(ctk.CTk):
             return True  # it was the right code; just don't expose vault internals
 
         def swap():
+            if self.weather:
+                self.weather.pause_background()
             self.vault = vault
             self.vault_view = VaultView(self, vault)
             self.vault_view.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -1549,6 +1742,7 @@ class App(ctk.CTk):
         def swap():
             self._teardown_vault()
             if self.weather:
+                self.weather.resume_background()
                 self.weather.entry.delete(0, "end")
                 self.weather.focus_set()
 
