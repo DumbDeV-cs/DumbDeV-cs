@@ -1,7 +1,7 @@
-name: stealth_weather_pro
-description: A polished location based weather app with an on-device file vault.
+name: skyline_weather
+description: Skyline Weather brings animated forecasts and a private local file vault.
 publish_to: none
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: '>=3.8.0 <4.0.0'

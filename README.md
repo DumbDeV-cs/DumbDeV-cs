@@ -1,4 +1,4 @@
-# Stealth Weather Pro
+# Skyline Weather
 
 A desktop weather dashboard with ranked city suggestions, approximate current-location weather, animated weather illustrations, a temperature trend chart with a moving highlight, rain-chance indicators, and an encrypted vault. Imported files and folders are copied as real items into `~/.wx_pro/saved_items`; encrypted metadata tracks the saved copies. Create file/folder actions make real items there too. Removing a vault entry removes its managed copy.
 

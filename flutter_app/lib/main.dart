@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -24,7 +25,7 @@ class WeatherRoot extends StatelessWidget {
   const WeatherRoot({super.key});
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'Stealth Weather Pro',
+    title: 'Skyline Weather',
     debugShowCheckedModeBanner: false,
     theme: ThemeData(
       brightness: Brightness.dark,
@@ -144,7 +145,7 @@ class WeatherHome extends StatefulWidget {
 }
 
 class _WeatherHomeState extends State<WeatherHome>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final searchController = TextEditingController();
   final focus = FocusNode();
   final suggestions = <Place>[];
@@ -152,6 +153,10 @@ class _WeatherHomeState extends State<WeatherHome>
   Place? place;
   WeatherData? data;
   bool imperial = false, loading = false;
+  bool _openingVault = false;
+  bool _checkingVaultAttempt = false;
+  bool _vaultReady = false;
+  String? _vaultCode;
   String? error;
   int requestId = 0;
   late final AnimationController entrance = AnimationController(
@@ -166,12 +171,19 @@ class _WeatherHomeState extends State<WeatherHome>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    focus.addListener(_onFocusChanged);
     _restore();
+  }
+
+  void _onFocusChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     debounce?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     searchController.dispose();
     focus.dispose();
     entrance.dispose();
@@ -179,9 +191,21 @@ class _WeatherHomeState extends State<WeatherHome>
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (!float.isAnimating) float.repeat(reverse: true);
+    } else {
+      float.stop();
+    }
+  }
+
   Future<void> _restore() async {
     const storage = FlutterSecureStorage();
+    _vaultCode = await storage.read(key: 'vault_code');
+    _vaultReady = true;
     final saved = await storage.read(key: 'last_place');
+    if (mounted) setState(() {});
     if (saved == null || !mounted) return;
     try {
       final p = Place.fromJson(jsonDecode(saved));
@@ -192,6 +216,20 @@ class _WeatherHomeState extends State<WeatherHome>
   void _onQuery(String value) {
     debounce?.cancel();
     final q = value.trim();
+    if (!_vaultReady) {
+      setState(() => suggestions.clear());
+      return;
+    }
+    if (_vaultCode != null && q == _vaultCode) {
+      _unlockFromSearch(q);
+      return;
+    }
+    // A vault code is private input, not a city query. Avoid sending it to
+    // geocoding while the user is typing it.
+    if (_vaultCode != null && _vaultCode!.startsWith(q) && q.isNotEmpty) {
+      setState(() => suggestions.clear());
+      return;
+    }
     if (q.length < 2 || !RegExp(r'^[a-zA-Z]').hasMatch(q)) {
       setState(() => suggestions.clear());
       return;
@@ -222,9 +260,31 @@ class _WeatherHomeState extends State<WeatherHome>
   }
 
   Future<void> _search() async {
+    if (_openingVault) return;
     final q = searchController.text.trim();
     if (q.isEmpty) {
       setState(() => error = 'Search for a city to see its weather.');
+      return;
+    }
+    if (!_vaultReady) {
+      _vaultCode = await const FlutterSecureStorage().read(key: 'vault_code');
+      _vaultReady = true;
+      if (!mounted) return;
+    }
+    if (_vaultCode != null && q == _vaultCode) {
+      await _unlockFromSearch(q);
+      return;
+    }
+    // Vault passcodes start with a digit or symbol. Keep those inputs local
+    // even when a passcode is mistyped; never send them to geocoding.
+    if (!RegExp(r'^[a-zA-Z]').hasMatch(q)) {
+      final attemptMessage = await _recordFailedVaultAttempt();
+      if (!mounted) return;
+      focus.unfocus();
+      setState(() {
+        suggestions.clear();
+        error = attemptMessage ?? 'No city found. Try another search.';
+      });
       return;
     }
     focus.unfocus();
@@ -246,6 +306,74 @@ class _WeatherHomeState extends State<WeatherHome>
   }
 
   String _cleanError(Object e) => e.toString().replaceFirst('Exception: ', '');
+
+  Future<String?> _recordFailedVaultAttempt() async {
+    if (_vaultCode == null) return null;
+    if (_checkingVaultAttempt) return 'Please wait a moment.';
+    _checkingVaultAttempt = true;
+    const storage = FlutterSecureStorage();
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final lockUntil =
+          int.tryParse(await storage.read(key: 'vault_lockout_until') ?? '') ??
+          0;
+      if (lockUntil > now) {
+        final seconds = ((lockUntil - now) / 1000).ceil();
+        return 'Try again in ${seconds}s.';
+      }
+      final attempts =
+          (int.tryParse(
+                await storage.read(key: 'vault_failed_attempts') ?? '',
+              ) ??
+              0) +
+          1;
+      if (attempts >= 5) {
+        final until = now + const Duration(seconds: 30).inMilliseconds;
+        await storage.write(key: 'vault_failed_attempts', value: '0');
+        await storage.write(
+          key: 'vault_lockout_until',
+          value: until.toString(),
+        );
+        return 'Try again in 30s.';
+      }
+      await storage.write(
+        key: 'vault_failed_attempts',
+        value: attempts.toString(),
+      );
+      return 'No city found. Try another search.';
+    } catch (_) {
+      return 'No city found. Try another search.';
+    } finally {
+      _checkingVaultAttempt = false;
+    }
+  }
+
+  Future<void> _unlockFromSearch(String code) async {
+    if (_openingVault) return;
+    _openingVault = true;
+    focus.unfocus();
+    debounce?.cancel();
+    setState(() {
+      suggestions.clear();
+      searchController.clear();
+      error = null;
+    });
+    try {
+      await _openVault(initialCode: code);
+    } finally {
+      _openingVault = false;
+    }
+  }
+
+  bool get _isVaultCodeDraft {
+    final query = searchController.text.trim();
+    final code = _vaultCode;
+    if (!_vaultReady) return true;
+    if (query.isEmpty) return false;
+    return !RegExp(r'^[a-zA-Z]').hasMatch(query) ||
+        (code != null && code.startsWith(query));
+  }
+
   Future<void> _load(Place p, {bool save = true}) async {
     final id = ++requestId;
     setState(() {
@@ -261,6 +389,7 @@ class _WeatherHomeState extends State<WeatherHome>
         loading = false;
         error = null;
       });
+      entrance.forward(from: 0);
       if (save) {
         const FlutterSecureStorage().write(
           key: 'last_place',
@@ -357,7 +486,19 @@ class _WeatherHomeState extends State<WeatherHome>
                       _searchArea(),
                       if (suggestions.isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        _suggestionPanel(),
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: 1),
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          builder: (_, value, child) => Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(0, (1 - value) * 8),
+                              child: child,
+                            ),
+                          ),
+                          child: _suggestionPanel(),
+                        ),
                       ],
                       if (error != null) ...[
                         const SizedBox(height: 12),
@@ -404,13 +545,15 @@ class _WeatherHomeState extends State<WeatherHome>
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.small(
-        onPressed: _openVault,
-        backgroundColor: panelLight,
-        foregroundColor: sky,
-        tooltip: 'Private file vault',
-        child: const Icon(Icons.folder_special_rounded),
-      ),
+      floatingActionButton: _vaultCode == null
+          ? FloatingActionButton.small(
+              onPressed: _openVault,
+              backgroundColor: panelLight,
+              foregroundColor: sky,
+              tooltip: 'Set up your private vault',
+              child: const Icon(Icons.lock_open_rounded),
+            )
+          : null,
     );
   }
 
@@ -493,12 +636,26 @@ class _WeatherHomeState extends State<WeatherHome>
       Row(
         children: [
           Expanded(
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
               height: 52,
               decoration: BoxDecoration(
-                color: panel,
+                color: focus.hasFocus ? const Color(0xff182b44) : panel,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white.withValues(alpha: .08)),
+                border: Border.all(
+                  color: focus.hasFocus
+                      ? sky.withValues(alpha: .48)
+                      : Colors.white.withValues(alpha: .08),
+                ),
+                boxShadow: focus.hasFocus
+                    ? [
+                        BoxShadow(
+                          color: sky.withValues(alpha: .08),
+                          blurRadius: 18,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : const [],
               ),
               child: Row(
                 children: [
@@ -512,6 +669,12 @@ class _WeatherHomeState extends State<WeatherHome>
                       onChanged: _onQuery,
                       onSubmitted: (_) => _search(),
                       textInputAction: TextInputAction.search,
+                      obscureText: _isVaultCodeDraft,
+                      enableSuggestions: !_isVaultCodeDraft,
+                      autocorrect: false,
+                      keyboardType: _isVaultCodeDraft
+                          ? TextInputType.visiblePassword
+                          : TextInputType.text,
                       decoration: const InputDecoration(
                         hintText: 'Search city or region',
                         hintStyle: TextStyle(
@@ -720,9 +883,11 @@ class _WeatherHomeState extends State<WeatherHome>
             height: 180,
             child: AnimatedBuilder(
               animation: float,
-              builder: (_, _) => CustomPaint(
-                painter: WeatherPainter('partly', true, float.value),
-                size: const Size(220, 180),
+              builder: (_, _) => RepaintBoundary(
+                child: CustomPaint(
+                  painter: WeatherPainter('partly', true, float.value),
+                  size: const Size(220, 180),
+                ),
               ),
             ),
           ),
@@ -732,7 +897,7 @@ class _WeatherHomeState extends State<WeatherHome>
           ),
           const SizedBox(height: 8),
           const Text(
-            'Search any city to see the forecast\nfor the next hours and days.',
+            'Search a city to see the forecast\nfor the hours and days ahead.',
             textAlign: TextAlign.center,
             style: TextStyle(color: muted, height: 1.55),
           ),
@@ -821,13 +986,15 @@ class _WeatherHomeState extends State<WeatherHome>
                         flex: 5,
                         child: AnimatedBuilder(
                           animation: float,
-                          builder: (_, _) => CustomPaint(
-                            painter: WeatherPainter(
-                              d.kind,
-                              d.isDay,
-                              float.value,
+                          builder: (_, _) => RepaintBoundary(
+                            child: CustomPaint(
+                              painter: WeatherPainter(
+                                d.kind,
+                                d.isDay,
+                                float.value,
+                              ),
+                              size: const Size(190, 174),
                             ),
-                            size: const Size(190, 174),
                           ),
                         ),
                       ),
@@ -985,9 +1152,11 @@ class _WeatherHomeState extends State<WeatherHome>
         children: [
           SizedBox(
             height: 68,
-            child: CustomPaint(
-              painter: TrendPainter(values, float.value),
-              child: const SizedBox.expand(),
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: TrendPainter(values, float.value),
+                child: const SizedBox.expand(),
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -1177,29 +1346,81 @@ class _WeatherHomeState extends State<WeatherHome>
     );
   }
 
-  Future<void> _openVault() async {
+  Future<void> _openVault({String? initialCode}) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const VaultSheet(),
+      builder: (_) => VaultSheet(initialCode: initialCode),
     );
+    final code = await const FlutterSecureStorage().read(key: 'vault_code');
+    if (mounted && code != _vaultCode) setState(() => _vaultCode = code);
   }
 }
 
 class _Backdrop extends StatelessWidget {
   const _Backdrop();
   @override
-  Widget build(BuildContext context) => const DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xff10213a), ink, Color(0xff0a1424)],
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.expand,
+    children: [
+      const DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xff10213a), ink, Color(0xff0a1424)],
+          ),
+        ),
       ),
-    ),
-    child: SizedBox.expand(),
+      Positioned(
+        top: -150,
+        right: -105,
+        child: _ambientGlow(350, const [Color(0x264b91ec), Color(0x004b91ec)]),
+      ),
+      Positioned(
+        bottom: 70,
+        left: -190,
+        child: _ambientGlow(330, const [Color(0x1d36bcae), Color(0x0036bcae)]),
+      ),
+      Positioned.fill(
+        child: IgnorePointer(child: CustomPaint(painter: _AtmospherePainter())),
+      ),
+    ],
   );
+
+  Widget _ambientGlow(double size, List<Color> colors) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: RadialGradient(colors: colors),
+    ),
+  );
+}
+
+class _AtmospherePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final points = <Offset>[
+      Offset(size.width * .14, size.height * .17),
+      Offset(size.width * .82, size.height * .27),
+      Offset(size.width * .73, size.height * .69),
+      Offset(size.width * .22, size.height * .82),
+      Offset(size.width * .91, size.height * .9),
+    ];
+    for (var i = 0; i < points.length; i++) {
+      final radius = i.isEven ? 1.4 : 1.0;
+      canvas.drawCircle(
+        points[i],
+        radius,
+        Paint()..color = Colors.white.withValues(alpha: .13),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _RangeBar extends StatelessWidget {
@@ -1397,6 +1618,26 @@ class WeatherPainter extends CustomPainter {
               height: 54 * s,
             ),
           );
+    final cloudShade = Paint()
+      ..color = const Color(0xff526f91).withValues(alpha: .42);
+    canvas.drawCircle(
+      cloudCenter.translate(-20 * s, 2 * s),
+      18 * s,
+      cloudShade,
+    );
+    canvas.drawCircle(cloudCenter.translate(2 * s, -9 * s), 25 * s, cloudShade);
+    canvas.drawCircle(cloudCenter.translate(25 * s, 2 * s), 17 * s, cloudShade);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: cloudCenter.translate(3 * s, 12 * s),
+          width: 67 * s,
+          height: 26 * s,
+        ),
+        Radius.circular(12 * s),
+      ),
+      cloudShade,
+    );
     canvas.drawCircle(cloudCenter.translate(-20 * s, -2 * s), 18 * s, cloud);
     canvas.drawCircle(cloudCenter.translate(2 * s, -13 * s), 25 * s, cloud);
     canvas.drawCircle(cloudCenter.translate(25 * s, -2 * s), 17 * s, cloud);
@@ -1521,16 +1762,18 @@ IconData weatherIcon(String kind) => switch (kind) {
 };
 
 class VaultSheet extends StatefulWidget {
-  const VaultSheet({super.key});
+  const VaultSheet({super.key, this.initialCode});
+  final String? initialCode;
   @override
   State<VaultSheet> createState() => _VaultSheetState();
 }
 
 class _VaultSheetState extends State<VaultSheet> {
   static const secure = FlutterSecureStorage();
+  static const privacyChannel = MethodChannel('skyline_weather/privacy');
   final codeController = TextEditingController();
   Directory? root;
-  bool unlocked = false, busy = false;
+  bool unlocked = false, busy = false, authenticating = false;
   List<FileSystemEntity> items = [];
   String? message;
   @override
@@ -1541,42 +1784,134 @@ class _VaultSheetState extends State<VaultSheet> {
 
   @override
   void dispose() {
+    unawaited(_setWindowSecure(false));
     codeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _setWindowSecure(bool enabled) async {
+    if (!Platform.isAndroid) return;
+    try {
+      await privacyChannel.invokeMethod<void>('setSecure', {
+        'enabled': enabled,
+      });
+    } catch (_) {
+      // Keep the vault usable if the platform privacy control is unavailable.
+    }
+  }
+
+  Future<void> _lockVault() async {
+    await _setWindowSecure(false);
+    if (!mounted) return;
+    setState(() {
+      unlocked = false;
+      codeController.clear();
+      message = null;
+    });
   }
 
   Future<void> _init() async {
     final dir = await getApplicationDocumentsDirectory();
     root = Directory('${dir.path}/saved_items');
     await root!.create(recursive: true);
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {});
+      if (widget.initialCode != null) {
+        codeController.text = widget.initialCode!;
+        await _unlock();
+      }
+    }
   }
 
   Future<void> _unlock() async {
+    if (authenticating) return;
     final code = codeController.text.trim();
-    if (code.length < 6 || RegExp(r'^[a-zA-Z]').hasMatch(code)) {
-      setState(
-        () => message =
-            'Use at least 6 characters, starting with a number or symbol.',
-      );
+    if (code.isEmpty) {
+      setState(() => message = 'Enter your vault passcode.');
       return;
     }
-    final stored = await secure.read(key: 'vault_code');
-    if (stored == null) {
-      await secure.write(key: 'vault_code', value: code);
-      setState(() {
-        unlocked = true;
-        message = null;
-      });
-      _refresh();
-    } else if (stored == code) {
-      setState(() {
-        unlocked = true;
-        message = null;
-      });
-      _refresh();
-    } else {
-      setState(() => message = 'That code does not match.');
+    setState(() => authenticating = true);
+    try {
+      final stored = await secure.read(key: 'vault_code');
+      if (!mounted) return;
+      if (stored == null) {
+        if (code.length < 8 || RegExp(r'^[a-zA-Z]').hasMatch(code)) {
+          setState(
+            () =>
+                message = 'Use 8+ characters starting with a number or symbol.',
+          );
+          return;
+        }
+        await secure.write(key: 'vault_code', value: code);
+        if (!mounted) return;
+        await _setWindowSecure(true);
+        if (!mounted) return;
+        codeController.clear();
+        setState(() {
+          unlocked = true;
+          message = null;
+        });
+        _refresh();
+        return;
+      }
+
+      final lockUntil =
+          int.tryParse(await secure.read(key: 'vault_lockout_until') ?? '') ??
+          0;
+      if (!mounted) return;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (lockUntil > now) {
+        final seconds = ((lockUntil - now) / 1000).ceil();
+        setState(
+          () => message = 'Too many attempts. Try again in ${seconds}s.',
+        );
+        return;
+      }
+
+      if (stored == code) {
+        await secure.delete(key: 'vault_failed_attempts');
+        await secure.delete(key: 'vault_lockout_until');
+        if (!mounted) return;
+        await _setWindowSecure(true);
+        if (!mounted) return;
+        codeController.clear();
+        setState(() {
+          unlocked = true;
+          message = null;
+        });
+        _refresh();
+        return;
+      }
+
+      final attempts =
+          (int.tryParse(
+                await secure.read(key: 'vault_failed_attempts') ?? '',
+              ) ??
+              0) +
+          1;
+      if (!mounted) return;
+      if (attempts >= 5) {
+        final until = now + const Duration(seconds: 30).inMilliseconds;
+        await secure.write(key: 'vault_failed_attempts', value: '0');
+        await secure.write(key: 'vault_lockout_until', value: until.toString());
+        if (!mounted) return;
+        setState(() => message = 'Too many attempts. Try again in 30s.');
+      } else {
+        await secure.write(
+          key: 'vault_failed_attempts',
+          value: attempts.toString(),
+        );
+        if (!mounted) return;
+        setState(
+          () => message = 'Incorrect passcode. ${5 - attempts} attempts left.',
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => message = 'Secure storage is unavailable. Try again.');
+      }
+    } finally {
+      if (mounted) setState(() => authenticating = false);
     }
   }
 
@@ -1819,7 +2154,7 @@ class _VaultSheetState extends State<VaultSheet> {
             ),
             if (unlocked)
               IconButton(
-                onPressed: () => setState(() => unlocked = false),
+                onPressed: _lockVault,
                 icon: const Icon(Icons.lock_outline_rounded),
                 tooltip: 'Lock vault',
               ),
@@ -1853,6 +2188,9 @@ class _VaultSheetState extends State<VaultSheet> {
       TextField(
         controller: codeController,
         obscureText: true,
+        enableSuggestions: false,
+        autocorrect: false,
+        keyboardType: TextInputType.visiblePassword,
         decoration: InputDecoration(
           labelText: 'Vault code',
           prefixIcon: const Icon(Icons.key_rounded),
@@ -1866,7 +2204,7 @@ class _VaultSheetState extends State<VaultSheet> {
       ),
       const SizedBox(height: 10),
       const Text(
-        'First use creates your code. Keep it safe; it cannot be recovered.',
+        'Use 8+ characters beginning with a number or symbol. Keep it safe; it cannot be recovered.',
         style: TextStyle(color: muted, fontSize: 11),
       ),
     ],
