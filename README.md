@@ -9,7 +9,7 @@
 <img src="assets/tagline-typing.gif" alt="Animated versions of my learning tagline" width="100%" />
 
 **Learning to code, one small project at a time.**  
-Desktop apps · tiny companions · web projects
+Desktop apps ·  · web projects
 
 *I learn by building, then make each project a little better.*
 
